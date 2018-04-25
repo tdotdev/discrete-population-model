@@ -1,69 +1,89 @@
+# my imports
+from timemodel import TimeModel
+
+# standard imports
 import time
 import copy
+import pprint
+
+# 3rd party imports & aliases
 import plotly
-plotly.tools.set_credentials_file(username='timothyCSnyder', api_key='mZ5dCnoJSLQ8CSq297Hc')
-import numpy as np
 import plotly.graph_objs as go
+from pymongo import MongoClient
 
-class PopulationModel:
-    def __init__(self, initPopulation, initCapacity, alpha, amplitude):
-        self.population = initPopulation
-        self.alpha = alpha;
-        self.capacity = initCapacity
-        self.initCapacity = initCapacity
-        self.amplitude = amplitude
-        self.t = 0
-        
-
-    def step(self):
-        self.capacity = self.initCapacity + (self.amplitude * pow(-1, self.t))
-        self.t = self.t + 1;
-        self.population = self.alpha * self.population * (1 - ((self.alpha - 1) / self.alpha) * self.population / self.capacity)
+# setup access to plotly API
+plotly.tools.set_credentials_file(username='timothyCSnyder', api_key='mZ5dCnoJSLQ8CSq297Hc')
 
 
-n = 1000;
-series = []
-model = PopulationModel(.5, 1, 1.7, .1)
-i = 0
+def main():
+    # mongo declarations
 
-print("Start population: " + str(model.population))
+    # simulation bounds
+    n = 100;
+    i = 0
+    series = []
 
-start_time = time.time()
+    model = TimeModel(.5, 1, 1.7, .1)
 
-while(i != n):
-    series.append(copy.deepcopy(model))
-    model.step()
-    i = i + 1;
-end_time = time.time()
+    print("Start population:\t" + str(model.population))
 
+    start_time = time.time()
 
-print("End population: " + str(model.population))
-print("Time: " + str(end_time - start_time) + "s")
-print(len(series))
+    # saves current simulation snapshot to list and steps simulation
+    while(i != n):
+        series.append(copy.deepcopy(model))
 
-x_data = []
-y_data = []
+        model.step()
+        i = i + 1;
 
-i = 0
-while(i != n):
-    x_data.append(series[i].t)
-    y_data.append(series[i].population)
-    i = i + 1
+    end_time = time.time()
 
+    print("End population:\t\t" + str(model.population))
+    print("Time:\t\t\t" + str(end_time - start_time) + "s")
+    print("Total iterations:\t" + str(len(series)))
 
-trace = go.Scatter(
-    x = x_data,
-    y = y_data
-)
-
-data = [trace]
-plotly.plotly.iplot(data, filename='1000')
+    plotIt(series)
+    writeSeries(series, 'series2')
 
 
-
-
-
+def runSeries(start, end):
     
 
+def plotIt(series):
+    x_data = []
+    y_data = []
 
-    
+    n = len(series)
+    i = 0
+
+    while(i != n):
+        x_data.append(series[i].t)
+        y_data.append(series[i].population)
+        i = i + 1
+
+
+    trace = go.Scatter(
+        x = x_data,
+        y = y_data
+    )
+
+    data = [trace]
+    #plotly.plotly.iplot(data, filename='1000')
+
+def writeSeries(series, collection):
+    client = MongoClient()
+    db = client.dts_database
+    collection = db[collection]
+
+    for j in range(0, len(series)):
+        current = series[j]
+        it = {"_id":j, "pop":current.population, "cap":current.capacity, "alp":current.alpha, "amp":current.amplitude}
+        collection.insert_one(it)
+
+    print(db.collection_names(include_system_collections=False))
+    for i in collection.find():
+        pprint.pprint(i)
+
+
+if __name__ == "__main__":
+    main()
