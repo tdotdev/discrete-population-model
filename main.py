@@ -16,38 +16,29 @@ plotly.tools.set_credentials_file(username='timothyCSnyder', api_key='mZ5dCnoJSL
 
 
 def main():
-    # mongo declarations
 
-    # simulation bounds
-    n = 100;
-    i = 0
+    sim  = runSeries(1000, .5, 1, 1.7, .1)
+
+    #plotIt(sim[0])
+
+    writeSeries(sim[0], 'series3')
+
+def runSeries(numIterations, initPopulation, initCapacity, alpha, amplitude):
+
+    model = TimeModel(initPopulation, initCapacity, alpha, amplitude)
     series = []
-
-    model = TimeModel(.5, 1, 1.7, .1)
-
-    print("Start population:\t" + str(model.population))
 
     start_time = time.time()
 
     # saves current simulation snapshot to list and steps simulation
-    while(i != n):
+    for i in range(0, numIterations):
         series.append(copy.deepcopy(model))
-
         model.step()
-        i = i + 1;
 
     end_time = time.time()
 
-    print("End population:\t\t" + str(model.population))
-    print("Time:\t\t\t" + str(end_time - start_time) + "s")
-    print("Total iterations:\t" + str(len(series)))
 
-    plotIt(series)
-    writeSeries(series, 'series2')
-
-
-def runSeries(start, end):
-    
+    return series, (end_time - start_time)
 
 def plotIt(series):
     x_data = []
@@ -68,7 +59,7 @@ def plotIt(series):
     )
 
     data = [trace]
-    #plotly.plotly.iplot(data, filename='1000')
+    plotly.plotly.iplot(data, filename='1000')
 
 def writeSeries(series, collection):
     client = MongoClient()
