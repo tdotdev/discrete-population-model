@@ -71,10 +71,6 @@ def writeSeries(series, collection):
         it = {"_id":j, "pop":current.population, "cap":current.capacity, "alp":current.alpha, "amp":current.amplitude}
         collection.insert_one(it)
 
-    print(db.collection_names(include_system_collections=False))
-    for i in collection.find():
-        pprint.pprint(i)
-
 
 if __name__ == "__main__":
     main()
