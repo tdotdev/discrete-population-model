@@ -20,17 +20,19 @@ def main():
     n = int(sys.argv[1])
     db = sys.argv[2]
 
-    start = time.time()
-    sim  = runSeries(n, .5, 1, 1.7, .1)
-    end = time.time()
-    print("Time to generate: " + str(end - start) + " seconds")
 
-    if(len(sys.argv) == 4 && sys.argv[3] == '-f'):
-        print('fast')
+    start = time.time()
+    if(len(sys.argv) == 4 and sys.argv[3] == '-f'):       
+        sim  = runSeriesFast(n, .5, 1, 1.7, .1)
+        end = time.time()
         writeSeriesFast(sim, db)
     else:
+        sim  = runSeries(n, .5, 1, 1.7, .1)
+        end = time.time()
         writeSeries(sim, db)
 
+
+    print("Time to generate: " + str(end - start) + " seconds")
     
 
 def runSeries(numIterations, initPopulation, initCapacity, alpha, amplitude):
@@ -42,6 +44,22 @@ def runSeries(numIterations, initPopulation, initCapacity, alpha, amplitude):
     for i in range(0, numIterations):
         series.append(copy.deepcopy(model))
         model.step()
+
+    return series
+
+def runSeriesFast(numIterations, initPopulation, initCapacity, alpha, amplitude):
+
+    model = TimeModel(initPopulation, initCapacity, alpha, amplitude)
+    series = []
+
+    # saves current simulation snapshot to list and steps simulation
+    for i in range(0, int(numIterations / 1000)):
+        document = {'_id': i, 'val': []}
+        for j in range(0, 1000):
+            val = {'pop':model.population, 'cap':model.capacity, 'amp':model.amplitude, 'alp':model.alpha}
+            document['val'].append(val)
+            model.step()
+        series.append(document)
 
     return series
 
