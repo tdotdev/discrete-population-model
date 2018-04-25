@@ -20,32 +20,30 @@ def main():
     n = int(sys.argv[1])
     db = sys.argv[2]
 
-    sim  = runSeries(n, .5, 1, 1.7, .1)
-    print("Time to generate: " + str(sim['time']) + " seconds")
-
-    #plotIt(sim[0])
     start = time.time()
-    writeSeries(sim['series'], db)
+    sim  = runSeries(n, .5, 1, 1.7, .1)
     end = time.time()
+    print("Time to generate: " + str(end - start) + " seconds")
 
-    print("Mongo write time: " + str(end - start) + " seconds")
+    if(len(sys.argv) == 4 && sys.argv[3] == '-f'):
+        print('fast')
+        writeSeriesFast(sim, db)
+    else:
+        writeSeries(sim, db)
+
+    
 
 def runSeries(numIterations, initPopulation, initCapacity, alpha, amplitude):
 
     model = TimeModel(initPopulation, initCapacity, alpha, amplitude)
     series = []
 
-    start_time = time.time()
-
     # saves current simulation snapshot to list and steps simulation
     for i in range(0, numIterations):
         series.append(copy.deepcopy(model))
         model.step()
 
-    end_time = time.time()
-
-
-    return {"series":series, "time":end_time - start_time}
+    return series
 
 def plotIt(series):
     x_data = []
@@ -69,14 +67,36 @@ def plotIt(series):
     plotly.plotly.iplot(data, filename='1000')
 
 def writeSeries(series, collection):
+    start = time.time()
     client = MongoClient()
     db = client['db']
     collection = db[collection]
+    i = 0;
 
-    for j in range(0, len(series)):
-        current = series[j]
-        it = {"_id":j, "pop":current.population, "cap":current.capacity, "alp":current.alpha, "amp":current.amplitude}
-        collection.insert_one(it)
+    for step in series:
+        collection.insert_one({"_id":i, "pop":step.population, "cap":step.capacity, "alp":step.alpha, "amp":step.amplitude})
+        i+=1
+        
+
+
+    end = time.time()
+    print("Mongo write time: " + str(end - start) + " seconds")
+
+def writeSeriesFast(series, collection):
+    start = time.time()
+    client = MongoClient()
+    db = client['db']
+    collection = db[collection]
+    i = 0;
+
+    for doc in series:
+        collection.insert_one(doc)
+        i+=1
+        
+
+
+    end = time.time()
+    print("Mongo write time: " + str(end - start) + " seconds")
 
 
 if __name__ == "__main__":
