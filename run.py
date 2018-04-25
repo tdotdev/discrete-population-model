@@ -5,6 +5,7 @@ from timemodel import TimeModel
 import time
 import copy
 import pprint
+import sys
 
 # 3rd party imports & aliases
 import plotly
@@ -16,12 +17,18 @@ plotly.tools.set_credentials_file(username='timothyCSnyder', api_key='mZ5dCnoJSL
 
 
 def main():
+    n = int(sys.argv[1])
+    db = sys.argv[2]
 
-    sim  = runSeries(1000, .5, 1, 1.7, .1)
+    sim  = runSeries(n, .5, 1, 1.7, .1)
+    print("Time to generate: " + str(sim['time']) + " seconds")
 
     #plotIt(sim[0])
+    start = time.time()
+    writeSeries(sim['series'], db)
+    end = time.time()
 
-    writeSeries(sim[0], 'series3')
+    print("Mongo write time: " + str(end - start) + " seconds")
 
 def runSeries(numIterations, initPopulation, initCapacity, alpha, amplitude):
 
@@ -38,7 +45,7 @@ def runSeries(numIterations, initPopulation, initCapacity, alpha, amplitude):
     end_time = time.time()
 
 
-    return series, (end_time - start_time)
+    return {"series":series, "time":end_time - start_time}
 
 def plotIt(series):
     x_data = []
@@ -63,7 +70,7 @@ def plotIt(series):
 
 def writeSeries(series, collection):
     client = MongoClient()
-    db = client.dts_database
+    db = client['db']
     collection = db[collection]
 
     for j in range(0, len(series)):
