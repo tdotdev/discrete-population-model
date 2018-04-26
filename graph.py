@@ -16,20 +16,16 @@ def main():
 	collection = db[sys.argv[1]]
 
 	populationSize = []
-	timeN = []
-
+	zeroToN = []
 
 	for document in collection.find():
-		doc = document
-		val = doc['val']
 		for i in range (0, 100):
-			if(val[i]['pop'] > 0):
-				populationSize.append(val[i]['pop'])
-				timeN.append(i)
+			rec = document['val'][i]
+			if(rec['pop'] > 0):
+				populationSize.append(rec['pop'])
+				zeroToN.append(i)
 
-
-	trace = go.Scatter(x = timeN,y = populationSize)
-
+	trace = go.Scatter(x = zeroToN,y = populationSize)
 	data = [trace]
 	plotly.plotly.iplot(data, filename=sys.argv[1])
 
