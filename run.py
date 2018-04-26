@@ -11,24 +11,23 @@ import sys
 from pymongo import MongoClient
 
 def main():
-    n = int(sys.argv[1])
-    db = sys.argv[2]
 
-
+    numIterations = int(sys.argv[1])
+    collection = sys.argv[2]
     start = time.time()
+
     if(len(sys.argv) == 4 and sys.argv[3] == '-f'):
         #initPopulation, initCapacity, alpha, amplitude       
-        sim  = runSeriesFast(n, .5, 1, 2.8, .1)
-        end = time.time()
-        writeSeriesFast(sim, db)
+        sim  = runSeriesFast(numIterations, .5, 1, 2.8, .1)
+
     else:
         #initPopulation, initCapacity, alpha, amplitude   
-        sim  = runSeries(n, .5, 1, 1.7, .1)
-        end = time.time()
-        writeSeries(sim, db)
-
+        sim  = runSeries(numIterations, .5, 1, 1.7, .1)
+    
+    end = time.time()
 
     print("Time to generate: " + str(end - start) + " seconds")
+    writeSeries(sim, collection)
     
 
 def runSeries(numIterations, initPopulation, initCapacity, alpha, amplitude):
@@ -38,7 +37,7 @@ def runSeries(numIterations, initPopulation, initCapacity, alpha, amplitude):
 
     # saves current simulation snapshot to list and steps simulation
     for i in range(0, numIterations):
-        series.append(copy.deepcopy(model))
+        series.append({"_id":i, "pop":model.population, "cap":model.capacity, "alp":model.alpha, "amp":model.amplitude})
         model.step()
 
     return series
@@ -87,28 +86,11 @@ def writeSeries(series, collection):
     collection = db[collection]
     i = 0;
 
-    for step in series:
-        collection.insert_one({"_id":i, "pop":step.population, "cap":step.capacity, "alp":step.alpha, "amp":step.amplitude})
-        i+=1
-        
-
-
-    end = time.time()
-    print("Mongo write time: " + str(end - start) + " seconds")
-
-def writeSeriesFast(series, collection):
-    start = time.time()
-    client = MongoClient()
-    db = client['db']
-    collection = db[collection]
-    i = 0;
-
     for doc in series:
         collection.insert_one(doc)
         i+=1
+    
         
-
-
     end = time.time()
     print("Mongo write time: " + str(end - start) + " seconds")
 
