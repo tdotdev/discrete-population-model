@@ -47,9 +47,13 @@ def readcol(args):
 	start = time.time()
 
 	for document in collection.find():
-		x = str(document)
+		doc = document
+		val = doc['val']
 		if(len(args) == 5 and args[4] == "-p"):
-			pprint.pprint(x)
+			print('_id: ' + str(doc['_id']))
+			for i in range (0, len(val)):
+				print(str(i) + ':\t' + pprint.pformat(val[i]))
+
 			printFlag = True
 
 	end = time.time()
