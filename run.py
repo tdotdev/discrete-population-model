@@ -8,13 +8,7 @@ import pprint
 import sys
 
 # 3rd party imports & aliases
-import plotly
-import plotly.graph_objs as go
 from pymongo import MongoClient
-
-# setup access to plotly API
-plotly.tools.set_credentials_file(username='timothyCSnyder', api_key='mZ5dCnoJSLQ8CSq297Hc')
-
 
 def main():
     n = int(sys.argv[1])
@@ -22,11 +16,13 @@ def main():
 
 
     start = time.time()
-    if(len(sys.argv) == 4 and sys.argv[3] == '-f'):       
-        sim  = runSeriesFast(n, .5, 1, 1.7, .1)
+    if(len(sys.argv) == 4 and sys.argv[3] == '-f'):
+        #initPopulation, initCapacity, alpha, amplitude       
+        sim  = runSeriesFast(n, .5, 1, 2.8, .1)
         end = time.time()
         writeSeriesFast(sim, db)
     else:
+        #initPopulation, initCapacity, alpha, amplitude   
         sim  = runSeries(n, .5, 1, 1.7, .1)
         end = time.time()
         writeSeries(sim, db)
