@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 from pymongo import MongoClient
 
 # setup access to plotly API
-plotly.tools.set_credentials_file(username='timothyCSnyder', api_key='mZ5dCnoJSLQ8CSq297Hc')
+plotly.tools.set_credentials_file(username='user', api_key='key')
 
 
 def main():
